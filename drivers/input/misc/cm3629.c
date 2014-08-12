@@ -558,6 +558,9 @@ static void report_psensor_input_event(struct cm3629_info *lpi, int interrupt_fl
 	} else {
 		val = (interrupt_flag == 2) ? 0 : 1;
 	}
+    // @tbalden, adding here the old ps_near filling from pre Sense 5.5
+	// for better near pocket detection
+	ps_near = !val;
 
 	if (lpi->ps_debounce == 1 && lpi->mfg_mode != MFG_MODE) {
 		if (val == 0) {
@@ -1448,6 +1451,7 @@ static int lightsensor_enable(struct cm3629_info *lpi)
 		if (sensor_chipId[0] != 0x29)
 			delay = 80;
 		else
+<<<<<<< HEAD
 			delay = 50;
 
 		if (lpi->mfg_mode != MFG_MODE)
@@ -1455,6 +1459,9 @@ static int lightsensor_enable(struct cm3629_info *lpi)
 
 		hr_msleep(delay);
 
+=======
+			msleep(85);
+>>>>>>> 336af94... a lot of changes... hotplugs, fastcharge, touchstuff...
 		input_report_abs(lpi->ls_input_dev, ABS_MISC, -1);
 		input_sync(lpi->ls_input_dev);
 		report_lsensor_input_event(lpi, 1);
@@ -2476,6 +2483,96 @@ err_free_ps_input_device:
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+int power_key_check_in_pocket(int check_dark)
+{
+	struct cm3629_info *lpi = lp_info;
+	int ls_dark;
+
+	uint32_t ls_adc = 0;
+	int ls_level = 0;
+	int i;
+	uint8_t ps1_adc = 0;
+#if 0
+	uint8_t ps2_adc = 0;
+	int ret = 0;
+
+
+
+#endif
+
+	if (!is_probe_success) {
+		D("[cm3629] %s return by cm3629 probe fail\n", __func__);
+		return 0;
+	}
+	pocket_mode_flag = 1;
+	D("[cm3629] %s +++\n", __func__);
+	mutex_lock(&als_get_adc_mutex);
+	get_ls_adc_value(&ls_adc, 0);
+	enable_als_interrupt();
+	mutex_unlock(&als_get_adc_mutex);
+	for (i = 0; i < 10; i++) {
+		if (ls_adc <= (*(lpi->adc_table + i))) {
+			ls_level = i;
+			if (*(lpi->adc_table + i))
+				break;
+		}
+		if (i == 9) {
+			ls_level = i;
+			break;
+		}
+	}
+	ls_dark = (ls_level <= lpi->dark_level) ? 1 : 0;
+	D("[cm3629] %s ls_adc = %d, ls_level = %d, ls_dark %d\n", __func__, ls_adc, ls_level, ls_dark);
+
+	psensor_enable(lpi);
+// don't use new method of Sense5.5 for pocket near detection. 
+// too high threshold here for nearness
+
+//#if 0
+
+#if 0
+
+	ret = get_ps_adc_value(&ps1_adc, &ps2_adc);
+	printk("POCKET ADC : %d ", ps1_adc);
+	if (ps1_adc >= 6) // fix up for checking other materials than human body, needs a very low threshold 6+ to 240
+		ps_near = 1;
+	else
+		ps_near = 0;
+
+//#endif
+
+#endif
+
+	D("[cm3629] %s ps1_adc = %d, pocket_thd = %d, ps_near = %d\n", __func__, ps1_adc, pocket_thd, ps_near);
+	psensor_disable(lpi);
+	pocket_mode_flag = 0;
+	return ((check_dark && ls_dark && ps_near) || (!check_dark && (ps_near)));//||ls_dark)));
+}
+
+int psensor_enable_by_touch_driver(int on)
+{
+	struct cm3629_info *lpi = lp_info;
+
+	if (!is_probe_success) {
+		D("[PS][cm3629] %s return by cm3629 probe fail\n", __func__);
+		return 0;
+	}
+	psensor_enable_by_touch = 1;
+
+	D("[PS][cm3629] %s on:%d\n", __func__, on);
+	if (on) {
+		psensor_enable(lpi);
+	} else {
+		psensor_disable(lpi);
+	}
+
+	psensor_enable_by_touch = 0;
+	return 0;
+}
+
+>>>>>>> 336af94... a lot of changes... hotplugs, fastcharge, touchstuff...
 static int cm3629_read_chip_id(struct cm3629_info *lpi)
 {
 	uint8_t chip_id[3] = {0};
