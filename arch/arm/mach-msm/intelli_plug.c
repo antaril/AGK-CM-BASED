@@ -20,12 +20,14 @@
 #include <linux/mutex.h>
 #include <linux/module.h>
 #include <linux/rq_stats.h>
+#include <linux/cpufreq.h>
+#include <linux/powersuspend.h>
 
 //#define DEBUG_INTELLI_PLUG
 #undef DEBUG_INTELLI_PLUG
 
-#define INTELLI_PLUG_MAJOR_VERSION	1
-#define INTELLI_PLUG_MINOR_VERSION	6
+#define INTELLI_PLUG_MAJOR_VERSION	2
+#define INTELLI_PLUG_MINOR_VERSION	4
 
 #define DEF_SAMPLING_RATE		(50000)
 #define DEF_SAMPLING_MS			(200)
@@ -284,6 +286,23 @@ static void intelli_plug_early_suspend(struct early_suspend *handler)
 	}
 }
 
+static void wakeup_boost(void)
+{
+	unsigned int i, ret;
+	struct cpufreq_policy policy;
+
+	for_each_online_cpu(i) {
+
+		ret = cpufreq_get_policy(&policy, i);
+		if (ret)
+			continue;
+
+		policy.cur = policy.max;
+
+		cpufreq_update_policy(i);
+	}
+}
+
 static void __cpuinit intelli_plug_late_resume(struct early_suspend *handler)
 {
 	int num_of_active_cores;
@@ -304,6 +323,8 @@ static void __cpuinit intelli_plug_late_resume(struct early_suspend *handler)
 	for (i = 1; i < num_of_active_cores; i++) {
 		cpu_up(i);
 	}
+
+wakeup_boost();
 
 	schedule_delayed_work_on(0, &intelli_plug_work,
 		msecs_to_jiffies(10));
