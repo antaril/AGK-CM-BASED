@@ -2534,14 +2534,11 @@ int power_key_check_in_pocket(int check_dark)
 	int ls_level = 0;
 	int i;
 	uint8_t ps1_adc = 0;
-#if 0
+//#if 0
 	uint8_t ps2_adc = 0;
 	int ret = 0;
 
-
-
-#endif
-
+//#endif
 	if (!is_probe_success) {
 		D("[cm3629] %s return by cm3629 probe fail\n", __func__);
 		return 0;
@@ -2569,22 +2566,14 @@ int power_key_check_in_pocket(int check_dark)
 	psensor_enable(lpi);
 // don't use new method of Sense5.5 for pocket near detection. 
 // too high threshold here for nearness
-
 //#if 0
-
-#if 0
-
 	ret = get_ps_adc_value(&ps1_adc, &ps2_adc);
 	printk("POCKET ADC : %d ", ps1_adc);
 	if (ps1_adc >= 6) // fix up for checking other materials than human body, needs a very low threshold 6+ to 240
 		ps_near = 1;
 	else
 		ps_near = 0;
-
 //#endif
-
-#endif
-
 	D("[cm3629] %s ps1_adc = %d, pocket_thd = %d, ps_near = %d\n", __func__, ps1_adc, pocket_thd, ps_near);
 	psensor_disable(lpi);
 	pocket_mode_flag = 0;
