@@ -15,27 +15,4 @@ config PRIMA_WLAN_BTAMP
 	bool "Enable the Prima WLAN BT-AMP feature"
 	default n
 
-<<<<<<< HEAD
-config PRIMA_WLAN_LFR
-	bool "Enable the Prima WLAN Legacy Fast Roaming feature"
-	default n
-
-config PRIMA_WLAN_OKC
-	bool "Enable the Prima WLAN Opportunistic Key Caching feature"
-	default n
-
-config PRIMA_WLAN_11AC_HIGH_TP
-	bool "Enable the Prima WLAN 802.11ac High Throughput option (depends upon kernel support)"
-	default n
-
-config QCOM_VOWIFI_11R
-	bool "Enable Fast Transition (11r) feature"
-	default n
-
-config QCOM_TDLS
-	bool "Enable TDLS feature"
-	default y
-
-=======
->>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 endif # PRIMA_WLAN

@@ -2534,22 +2534,11 @@ int power_key_check_in_pocket(int check_dark)
 	int ls_level = 0;
 	int i;
 	uint8_t ps1_adc = 0;
-<<<<<<< HEAD
-#if 0
-	uint8_t ps2_adc = 0;
-	int ret = 0;
-
-
-
-#endif
-
-=======
 //#if 0
 	uint8_t ps2_adc = 0;
 	int ret = 0;
 
 //#endif
->>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 	if (!is_probe_success) {
 		D("[cm3629] %s return by cm3629 probe fail\n", __func__);
 		return 0;
@@ -2577,38 +2566,20 @@ int power_key_check_in_pocket(int check_dark)
 	psensor_enable(lpi);
 // don't use new method of Sense5.5 for pocket near detection. 
 // too high threshold here for nearness
-<<<<<<< HEAD
-
 //#if 0
-
-#if 0
-
-=======
-//#if 0
->>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 	ret = get_ps_adc_value(&ps1_adc, &ps2_adc);
 	printk("POCKET ADC : %d ", ps1_adc);
 	if (ps1_adc >= 6) // fix up for checking other materials than human body, needs a very low threshold 6+ to 240
 		ps_near = 1;
 	else
 		ps_near = 0;
-<<<<<<< HEAD
-
 //#endif
-
-#endif
-
-=======
-//#endif
->>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 	D("[cm3629] %s ps1_adc = %d, pocket_thd = %d, ps_near = %d\n", __func__, ps1_adc, pocket_thd, ps_near);
 	psensor_disable(lpi);
 	pocket_mode_flag = 0;
 	return ((check_dark && ls_dark && ps_near) || (!check_dark && (ps_near)));//||ls_dark)));
 }
 
-<<<<<<< HEAD
-=======
 int pocket_detection_check(void)
 {
 	struct cm3629_info *lpi = lp_info;
@@ -2628,7 +2599,6 @@ int pocket_detection_check(void)
 }
 
 
->>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 int psensor_enable_by_touch_driver(int on)
 {
 	struct cm3629_info *lpi = lp_info;

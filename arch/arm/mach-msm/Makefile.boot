@@ -44,11 +44,7 @@ else
 endif
 
 # MSM8930
-<<<<<<< HEAD
-ifeq ($(CONFIG_MACH_HTC),y)
-=======
 ifeq ($(CONFIG_MACH_M4_UL),y)
->>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
    zreladdr-$(CONFIG_ARCH_MSM8930)	:= 0x80608000
 else
    zreladdr-$(CONFIG_ARCH_MSM8930)	:= 0x80208000
