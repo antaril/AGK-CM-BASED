@@ -1039,6 +1039,7 @@ config TOUCHSCREEN_SYNAPTICS_3K
 	help
 	  This enables support for Synaptics RMI4 over I2C based touchscreens.
 
+<<<<<<< HEAD
 config TOUCHSCREEN_SYNAPTICS_REMOVE_FW_TIMEOUT
 	default n
 	depends on TOUCHSCREEN_SYNAPTICS_3K
@@ -1046,10 +1047,16 @@ config TOUCHSCREEN_SYNAPTICS_REMOVE_FW_TIMEOUT
 	help
 	  Say Y here if your Synaptics touchscreen is prone to
 	  failures when reading the firmware condition.
+=======
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 config TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
         tristate "Sweep2Wake for SYNAPTICS_3k based touchscreens"
         depends on TOUCHSCREEN_SYNAPTICS_3K
+<<<<<<< HEAD
         default y
+=======
+        default n
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 endif

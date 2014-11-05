@@ -1,10 +1,10 @@
-
 /*
  * This software program is licensed subject to the GNU General Public License
  * (GPL).Version 2,June 1991, available at http://www.fsf.org/copyleft/gpl.html
 
  * (C) Copyright 2011 Bosch Sensortec GmbH
  * All Rights Reserved
+ * (C) Copyright 2013 Illes Pal Zoltan - Gyrowake modifications
  */
 
 
@@ -28,11 +28,20 @@
 #include <linux/pl_sensor.h>
 #include <linux/synaptics_i2c_rmi.h>
 #include <linux/mfd/pm8xxx/vibrator.h>
+<<<<<<< HEAD
 #endif
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
 #endif
+=======
+#endif
+
+#ifdef CONFIG_HAS_EARLYSUSPEND
+#include <linux/earlysuspend.h>
+#endif
+#include <linux/wakelock.h>
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 #include <linux/bma250.h>
 #define D(x...) printk(KERN_DEBUG "[GSNR][BMA250_BOSCH] " x)
@@ -61,6 +70,7 @@ struct bma250_data {
 	struct mutex value_mutex;
 	struct mutex enable_mutex;
 	struct mutex mode_mutex;
+	struct mutex sig_mo_mutex;
 	struct delayed_work work;
 	struct work_struct irq_work;
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -75,6 +85,15 @@ struct bma250_data {
 
 	struct bma250_platform_data *pdata;
 	short offset_buf[3];
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_SIG_MOTION
+	struct input_dev *input_sig_motion;
+	atomic_t en_sig_motion;
+	int ref_count;
+	struct wake_lock sig_wake_lock;
+#endif
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 };
 
 struct bma250_data *gdata;
@@ -93,8 +112,13 @@ static void bma250_late_resume(struct early_suspend *h);
 
 #ifdef CONFIG_BMA250_WAKE_OPTIONS
 // flick of the phone wakes/sleeps the phone
+<<<<<<< HEAD
 static int FLICK_WAKE_ENABLED = 0;
 static int FLICK_SLEEP_ENABLED = 0;
+=======
+static int FLICK_WAKE_ENABLED = 1;
+static int FLICK_SLEEP_ENABLED = 1;
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 static int FLICK_WAKE_SENSITIVITY = 1; // 0-1, 0 less sensitive, 1 more sensible
 static int FLICK_WAKE_MIN_SLEEP_TIME = 0;
 // if phone has been laying around on the table (horizontal still), and gyro turns to mostly vertical for a bit of time, wake phone
@@ -1509,19 +1533,32 @@ extern void flick2wake_setdev(struct input_dev * input_device) {
 EXPORT_SYMBOL(flick2wake_setdev);
 
 static void flick2wake_presspwr(struct work_struct * flick2wake_presspwr_work) {
+<<<<<<< HEAD
 	if ( touchscreen_is_on()==0 && power_key_check_in_pocket(1) ) return; // don't wake if in pocket
+=======
+	if ( touchscreen_is_on()==0 && power_key_check_in_pocket(0) ) return; // don't wake if in pocket
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 	if (!mutex_trylock(&pwrlock))
 	    return;
 
+<<<<<<< HEAD
 	vibrate(5 * 5);
+=======
+	vibrate(get_sleep_wake_vibration_time() * 5);
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 	printk("sending event KEY_POWER 1\n");
 	input_event(flick2wake_pwrdev, EV_KEY, KEY_POWER, 1);
 	input_sync(flick2wake_pwrdev);
 	msleep(100);
 	input_event(flick2wake_pwrdev, EV_KEY, KEY_POWER, 0);
+<<<<<<< HEAD
 	
+=======
+	input_sync(flick2wake_pwrdev);
+	msleep(100);
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 	// to make sure it gets back to Normal mode upon power off too, set suspended = 1
 //	suspended = 1;
 	mutex_unlock(&pwrlock);
@@ -1597,14 +1634,27 @@ static void flick_wake_detection_snap(s16 data_x, s16 data_y, s16 data_z)
 	last_y = data_y;
 }
 
+<<<<<<< HEAD
+=======
+static unsigned int LAST_IRQ_DETECTION_T = 0;
+
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 // used to react on snap in sleep mode, through IRQ work calling this
 static void flick_wake_detection_snap_irq(s16 data_x, s16 data_y, s16 data_z)
 {
 	if (jiffies - LAST_SLEEP_TRIGGER_T < ((1+FLICK_WAKE_MIN_SLEEP_TIME)*80) ) return;
 	if (touchscreen_is_on()==1) return;
+<<<<<<< HEAD
 	if (1) {
 			printk("BMA - =============== 3 FLICK SNAP DONE - POWER ON =====================\n");
 			flick2wake_pwrtrigger();
+=======
+	if (jiffies - LAST_IRQ_DETECTION_T < 120) return; // too close to another irq wake done already
+	if (1) {
+			printk("BMA - =============== 3 FLICK SNAP DONE - POWER ON =====================\n");
+			flick2wake_pwrtrigger();
+			LAST_IRQ_DETECTION_T = jiffies;
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 	}
 }
 
@@ -1629,7 +1679,11 @@ static void pick2wake_count(struct work_struct * pick2wake_count_work) {
 	unsigned int calc_time = 0;
 	printk("BMA pick2wake_count - check ts on and pwp...\n");
 
+<<<<<<< HEAD
 	if ( touchscreen_is_on()==0 && power_key_check_in_pocket(1) ) return; // don't wake if in pocket
+=======
+	if ( touchscreen_is_on()==0 && power_key_check_in_pocket(0) ) return; // don't wake if in pocket
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 	printk("BMA pick2wake_count\n");
 	if (!mutex_trylock(&picklock))
@@ -1655,7 +1709,11 @@ static void pick2wake_count(struct work_struct * pick2wake_count_work) {
 		}
 		msleep(3);
 	}
+<<<<<<< HEAD
 	vibrate(3 * 5);
+=======
+	vibrate(get_sleep_wake_vibration_time() * 5);
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 	printk("BMA - pick2wake_count sending event KEY_POWER 1\n");
 	input_event(flick2wake_pwrdev, EV_KEY, KEY_POWER, 1);
@@ -2188,6 +2246,7 @@ static ssize_t bma250_enable_show(struct device *dev,
 #ifdef CONFIG_BMA250_WAKE_OPTIONS
 
 static ssize_t bma250_setup_interrupt_for_wake(struct bma250_data *bma250);
+<<<<<<< HEAD
 
 static int MIN_SLEEP_TIME_MAX = 5;
 static char MIN_SLEEP_TIME_MAX_C = '5';
@@ -2237,6 +2296,301 @@ static ssize_t bma250_f2w_sensitivity_show(struct device *dev,
 	size_t count = 0;
 
 	count += sprintf(buf, "%d\n", FLICK_WAKE_SENSITIVITY);
+
+	return count;
+}
+
+static ssize_t bma250_f2w_sensitivity_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct bma250_data *bma250 = i2c_get_clientdata(client);
+
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+		if (FLICK_WAKE_SENSITIVITY != buf[0] - '0') {
+			FLICK_WAKE_SENSITIVITY = buf[0] - '0';
+		}
+
+	printk(KERN_INFO "BMA [FLICK_WAKE_SENSITIVITY]: %d.\n", FLICK_WAKE_SENSITIVITY);
+	bma250_setup_interrupt_for_wake(bma250);
+
+	return count;
+}
+
+static DEVICE_ATTR(f2w_sensitivity, (S_IWUSR|S_IRUGO),
+	bma250_f2w_sensitivity_show, bma250_f2w_sensitivity_store);
+
+static ssize_t bma250_f2w_sensitivity_values_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	if (FLICK_WAKE_SENSITIVITY == 0) {
+		count += sprintf(buf, "[0] 1\n");
+	} else {
+		count += sprintf(buf, "0 [1]\n");
+	}
+
+	return count;
+}
+
+static ssize_t bma250_f2w_sensitivity_values_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct bma250_data *bma250 = i2c_get_clientdata(client);
+
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+		if (FLICK_WAKE_SENSITIVITY != buf[0] - '0') {
+			FLICK_WAKE_SENSITIVITY = buf[0] - '0';
+		}
+
+	printk(KERN_INFO "BMA [FLICK_WAKE_SENSITIVITY]: %d.\n", FLICK_WAKE_SENSITIVITY);
+	bma250_setup_interrupt_for_wake(bma250);
+
+	return count;
+}
+
+static DEVICE_ATTR(f2w_sensitivity_values, (S_IWUSR|S_IRUGO),
+	bma250_f2w_sensitivity_values_show, bma250_f2w_sensitivity_values_store);
+
+
+static ssize_t bma250_flick2wake_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", FLICK_WAKE_ENABLED);
+
+	return count;
+}
+
+static ssize_t bma250_flick2wake_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct bma250_data *bma250 = i2c_get_clientdata(client);
+
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+		if (FLICK_WAKE_ENABLED != buf[0] - '0') {
+			FLICK_WAKE_ENABLED = buf[0] - '0';
+		}
+
+	printk(KERN_INFO "BMA [FLICK_WAKE_ENABLED]: %d.\n", FLICK_WAKE_ENABLED);
+	bma250_setup_interrupt_for_wake(bma250);
+
+	return count;
+}
+
+static DEVICE_ATTR(flick2wake, (S_IWUSR|S_IRUGO),
+	bma250_flick2wake_show, bma250_flick2wake_store);
+
+static ssize_t bma250_flick2sleep_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", FLICK_SLEEP_ENABLED);
+
+	return count;
+}
+
+static ssize_t bma250_flick2sleep_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+		if (FLICK_SLEEP_ENABLED != buf[0] - '0') {
+			FLICK_SLEEP_ENABLED = buf[0] - '0';
+		}
+
+	printk(KERN_INFO "BMA [FLICK_SLEEP_ENABLED]: %d.\n", FLICK_SLEEP_ENABLED);
+
+	return count;
+}
+
+static DEVICE_ATTR(flick2sleep, (S_IWUSR|S_IRUGO),
+	bma250_flick2sleep_show, bma250_flick2sleep_store);
+
+static ssize_t bma250_pick2wake_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", PICK_WAKE_ENABLED);
+
+	return count;
+}
+
+
+static ssize_t bma250_pick2wake_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct bma250_data *bma250 = i2c_get_clientdata(client);
+
+
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+		if (PICK_WAKE_ENABLED != buf[0] - '0') {
+			PICK_WAKE_ENABLED = buf[0] - '0';
+		}
+
+	printk(KERN_INFO "BMA [PICK_WAKE_ENABLED]: %d.\n", PICK_WAKE_ENABLED);
+	bma250_setup_interrupt_for_wake(bma250);
+	return count;
+}
+
+static DEVICE_ATTR(pick2wake, (S_IWUSR|S_IRUGO),
+	bma250_pick2wake_show, bma250_pick2wake_store);
+
+static unsigned int SET_ENABLE_0_CALLED_T = 0;
+
+#endif
+
+
+static void bma250_set_enable(struct device *dev, int enable)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct bma250_data *bma250 = i2c_get_clientdata(client);
+	int pre_enable = atomic_read(&bma250->enable);
+	int i = 0;
+	
+#ifdef CONFIG_BMA250_WAKE_OPTIONS
+	printk("BMA set_enable %d\n", enable);
+	if ( ( enable == 0 ) && ( keep_sensor_on() == 1 || (FLICK_SLEEP_ENABLED == 1 && screen_on == 1) ) ) {
+		printk("BMA set_enable %d skipped, wake options need it enabled\n", enable);
+		SET_ENABLE_0_CALLED_T = jiffies;
+		return;
+	}
+#endif
+
+	mutex_lock(&bma250->enable_mutex);
+	if (enable) {
+		if (bma250->pdata->power_LPM)
+			bma250->pdata->power_LPM(0);
+
+		if (pre_enable == 0) {
+			bma250_set_mode(bma250->bma250_client,
+					BMA250_MODE_NORMAL);
+			printk("BMA schedule delayed work - enable\n");
+			schedule_delayed_work(&bma250->work,
+				msecs_to_jiffies(atomic_read(&bma250->delay)));
+			atomic_set(&bma250->enable, 1);
+		}
+
+	} else {
+#ifdef CONFIG_BMA250_WAKE_OPTIONS
+		if (keep_sensor_on() == 0)
+#endif
+		if (pre_enable == 1) {
+#ifdef CONFIG_BMA250_WAKE_OPTIONS
+			suspended = 1;
+#endif
+			bma250_set_mode(bma250->bma250_client,
+					BMA250_MODE_SUSPEND);
+			//printk("BMA cancel delayed work - enable\n");
+			cancel_delayed_work_sync(&bma250->work);
+			atomic_set(&bma250->enable, 0);
+=======
+
+static int MIN_SLEEP_TIME_MAX = 5;
+static char MIN_SLEEP_TIME_MAX_C = '5';
+
+static ssize_t bma250_f2w_min_sleep_time_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+	int time_scale = 0;
+
+	while (1) {
+		if (time_scale == FLICK_WAKE_MIN_SLEEP_TIME) {
+			count += sprintf(&buf[count], "[%d] ", time_scale);
+		} else {
+			count += sprintf(&buf[count], "%d ", time_scale);
+		}
+		if (++time_scale > MIN_SLEEP_TIME_MAX) {
+			count += sprintf(&buf[count], "\n");
+			break;
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
+		}
+
+#ifdef CONFIG_CIR_ALWAYS_READY
+		if (bma250->pdata->power_LPM && !cir_flag)
+#else
+
+		if (bma250->pdata->power_LPM)
+#endif
+			if (keep_sensor_on() == 0)
+				bma250->pdata->power_LPM(1);
+	}
+	return count;
+}
+
+static ssize_t bma250_f2w_min_sleep_time_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+
+	if (buf[0] >= '0' && buf[0] <= MIN_SLEEP_TIME_MAX_C && buf[1] == '\n')
+		if (FLICK_WAKE_MIN_SLEEP_TIME != buf[0] - '0') {
+			FLICK_WAKE_MIN_SLEEP_TIME = buf[0] - '0';
+		}
+	if (FLICK_WAKE_MIN_SLEEP_TIME<0) FLICK_WAKE_MIN_SLEEP_TIME = 0;
+	if (FLICK_WAKE_MIN_SLEEP_TIME>MIN_SLEEP_TIME_MAX) FLICK_WAKE_MIN_SLEEP_TIME = MIN_SLEEP_TIME_MAX;
+	printk(KERN_INFO "BMA [FLICK_WAKE_MIN_SLEEP_TIME]: %d.\n", FLICK_WAKE_MIN_SLEEP_TIME);
+
+	return count;
+}
+#ifdef CONFIG_BMA250_WAKE_OPTIONS
+struct device *gyroscope_dev = 0;
+
+extern void gyroscope_enable(int enable) {
+	if (gyroscope_dev == 0) return; // not yet inited
+	if (enable) {
+		screen_on = 1;
+		if (PICK_WAKE_ENABLED ==1 || FLICK_SLEEP_ENABLED == 1) {
+				struct i2c_client *client = to_i2c_client(gyroscope_dev);
+				struct bma250_data *bma250 = i2c_get_clientdata(client);
+				bma250_set_enable(gyroscope_dev, 1);
+				// set delay to 66, as htc framework, so gyro sleep works fine
+				atomic_set(&bma250->delay, (unsigned int) 66);
+		}
+	} else {
+		screen_on = 0;
+		// set last sleep time, because m7-display calls enable(0) when screen is going sleeping
+		// this way, Flick2Wake won't happen after a power button or touchscreen sleep event either
+		LAST_SLEEP_TRIGGER_T = jiffies;
+		if (PICK_WAKE_ENABLED == 0) {
+			if (jiffies - SET_ENABLE_0_CALLED_T < 80) {
+				// if SET_ENABLE_0_CALLED_T is very close to current jiffies, it means that it's not an in call mipi power off,
+				// but a normal screen off, which should really turn off gyroscope, instead of the skipping done when the
+				// screen was yet on (bma250_set_enable(0) sometimes is called BEFORE the actual Mipi power off, that's
+				// why this is needed, to prevent wakelocks happening)
+				printk("BMA - gyroscope_enable 0 - very close to last skipped userspace bma250_enable(0) call - disable screen this time\n");
+				bma250_set_enable(gyroscope_dev, 0);
+			}
+		}
+	}
+}
+#endif
+
+
+static DEVICE_ATTR(f2w_min_sleep_time, (S_IWUSR|S_IRUGO),
+	bma250_f2w_min_sleep_time_show, bma250_f2w_min_sleep_time_store);
+
+<<<<<<< HEAD
+	error = strict_strtoul(buf, 10, &data);
+	if (error)
+		return error;
+	if ((data == 0) || (data == 1))
+		bma250_set_enable(dev, data);
+=======
+
+static ssize_t bma250_f2w_sensitivity_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", FLICK_WAKE_SENSITIVITY);
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 
 	return count;
 }
@@ -2512,6 +2866,123 @@ static ssize_t bma250_enable_store(struct device *dev,
 
 	return count;
 }
+
+static ssize_t bma250_en_sig_motion_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct bma250_data *bma250 = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%d\n", atomic_read(&bma250->en_sig_motion));
+
+}
+
+
+#if 0
+static int bma250_set_en_slope_int(struct bma250_data *bma250,
+		int en)
+{
+	int err = 0;
+	struct i2c_client *client = bma250->bma250_client;
+
+	if (client == NULL) {
+		E("%s: client == NULL!!", __func__);
+		return -1;
+	}
+	if (en) {
+		err = bma250_set_slope_duration(client, 0x03);
+		if (err)
+			E("%s: bma250_set_slope_duration() fails!\n", __func__);
+
+		err = bma250_set_slope_threshold(client, 0x28);
+		if (err)
+			E("%s: bma250_set_slope_threshold() fails!\n", __func__);
+
+		
+		err = bma250_set_Int_Enable(client, 5, 1);
+		if (err)
+			E("%s: bma250_set_Int_Enable(5, 1) fails!\n", __func__);
+
+		err = bma250_set_Int_Enable(client, 6, 1);
+		if (err)
+			E("%s: bma250_set_Int_Enable(6, 1) fails!\n", __func__);
+
+		err = bma250_set_Int_Enable(client, 7, 1);
+		if (err)
+			E("%s: bma250_set_Int_Enable(7, 1) fails!\n", __func__);
+
+		err = bma250_set_int1_pad_sel(client, PAD_SLOP);
+		if (err)
+			E("%s: bma250_set_int1_pad_sel() fails!\n", __func__);
+	} else {
+		err = bma250_set_Int_Enable(client, 5, 0);
+		if (err)
+			E("%s: bma250_set_Int_Enable(5, 0) fails!\n", __func__);
+
+		err = bma250_set_Int_Enable(client, 6, 0);
+		if (err)
+			E("%s: bma250_set_Int_Enable(6, 0) fails!\n", __func__);
+
+		err = bma250_set_Int_Enable(client, 7, 0);
+		if (err)
+			E("%s: bma250_set_Int_Enable(7, 0) fails!\n", __func__);
+	}
+	return err;
+}
+#endif
+
+#if 0
+static int bma250_set_en_sig_motion(struct bma250_data *bma250,
+		int en)
+{
+	int err = 0;
+
+	mutex_lock(&bma250->sig_mo_mutex);
+	I("%s++: en = %d, mutex locked\n", __func__, en);
+
+	if (en) {
+		bma250_set_mode(bma250->bma250_client,
+				bma250_MODE_NORMAL);
+		bma250_set_en_slope_int(bma250, en);
+	} else {
+		bma250_set_en_slope_int(bma250, en);
+		bma250_set_mode(bma250->bma250_client,
+				BMA250_MODE_SUSPEND);
+	}
+
+	mutex_unlock(&bma250->sig_mo_mutex);
+	I("%s--: mutex unlocked\n", __func__);
+	return err;
+}
+#endif
+
+
+static ssize_t bma250_en_sig_motion_store(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+#if 0
+	unsigned long data;
+	int error = 0;
+	
+	struct i2c_client *client = to_i2c_client(dev);
+	struct bma250_data *bma250 = i2c_get_clientdata(client);
+
+	error = strict_strtoul(buf, 10, &data);
+	if (error)
+		return error;
+
+	I("%s: data = %lu\n", __func__, data);
+
+	if ((data == 0) || (data == 1)) {
+		bma250_set_en_sig_motion(bma250, data);
+		atomic_set(&bma250->en_sig_motion, data);
+	}
+#endif
+	return count;
+}
+
+
 
 static ssize_t bma250_enable_int_store(struct device *dev,
 		struct device_attribute *attr,
@@ -3557,6 +4028,8 @@ static DEVICE_ATTR(enable_int, S_IWUSR|S_IWGRP|S_IWOTH,
 		NULL, bma250_enable_int_store);
 static DEVICE_ATTR(int_mode, S_IRUGO|S_IWUSR|S_IWGRP|S_IWOTH,
 		bma250_int_mode_show, bma250_int_mode_store);
+static DEVICE_ATTR(en_sig_motion, S_IRUGO|S_IWUSR|S_IWGRP|S_IWOTH,
+		bma250_en_sig_motion_show, bma250_en_sig_motion_store);
 static DEVICE_ATTR(slope_duration, S_IRUGO|S_IWUSR|S_IWGRP|S_IWOTH,
 		bma250_slope_duration_show, bma250_slope_duration_store);
 static DEVICE_ATTR(slope_threshold, S_IRUGO|S_IWUSR|S_IWGRP|S_IWOTH,
@@ -3625,6 +4098,7 @@ static struct attribute *bma250_attributes[] = {
 	&dev_attr_enable.attr,
 	&dev_attr_enable_int.attr,
 	&dev_attr_int_mode.attr,
+	&dev_attr_en_sig_motion.attr,
 	&dev_attr_slope_duration.attr,
 	&dev_attr_slope_threshold.attr,
 	&dev_attr_high_g_duration.attr,
@@ -3765,6 +4239,7 @@ static int bma250_probe(struct i2c_client *client,
 	unsigned char tempvalue;
 	struct bma250_data *data;
 	struct input_dev *dev;
+	struct input_dev *dev_sig_motion;
 #ifdef CONFIG_CIR_ALWAYS_READY
 	struct input_dev *dev_cir;
 	struct class *bma250_powerkey_class = NULL;
@@ -3870,8 +4345,21 @@ static int bma250_probe(struct i2c_client *client,
 	    kfree(data);
 	    input_free_device(dev);
 	    return -ENOMEM;
+<<<<<<< HEAD
+=======
 	}
 #endif
+
+#ifdef CONFIG_SIG_MOTION
+	dev_sig_motion = input_allocate_device();
+	if (!dev_sig_motion) {
+	    kfree(data);
+	    input_free_device(dev_sig_motion);
+	    return -ENOMEM;
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
+	}
+#endif
+
 	dev->name = SENSOR_NAME;
 	dev->id.bustype = BUS_I2C;
 #ifdef CONFIG_CIR_ALWAYS_READY
@@ -3881,6 +4369,18 @@ static int bma250_probe(struct i2c_client *client,
 	input_set_capability(dev_cir, EV_REL, SLOP_INTERRUPT);
 	input_set_drvdata(dev_cir, data);
 #endif
+<<<<<<< HEAD
+=======
+
+#ifdef CONFIG_SIG_MOTION
+	dev_sig_motion->name = "sig_motion";
+	dev_sig_motion->id.bustype = BUS_I2C;
+
+	input_set_capability(dev_sig_motion, EV_REL, SLOP_INTERRUPT);
+	input_set_drvdata(dev_sig_motion, data);
+#endif
+
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 	input_set_capability(dev, EV_ABS, ORIENT_INTERRUPT);
 	input_set_capability(dev, EV_ABS, FLAT_INTERRUPT);
 	input_set_abs_params(dev, ABS_X, ABSMIN, ABSMAX, 0, 0);
@@ -3899,6 +4399,16 @@ static int bma250_probe(struct i2c_client *client,
 	err = input_register_device(dev_cir);
 	if (err < 0) {
 	    goto err_register_input_cir_device;
+<<<<<<< HEAD
+=======
+	}
+#endif
+
+#ifdef CONFIG_SIG_MOTION
+	err = input_register_device(dev_sig_motion);
+	if (err < 0) {
+	    goto err_register_input_device_sig_motion;
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 	}
 #endif
 
@@ -3907,6 +4417,12 @@ static int bma250_probe(struct i2c_client *client,
 	data->input_cir = dev_cir;
 #endif
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_SIG_MOTION
+	data->input_sig_motion = dev_sig_motion;
+#endif
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 #ifdef HTC_ATTR
 
 
@@ -3973,6 +4489,7 @@ static int bma250_probe(struct i2c_client *client,
 
 	mutex_init(&data->value_mutex);
 	mutex_init(&data->mode_mutex);
+	mutex_init(&data->sig_mo_mutex);
 	mutex_init(&data->enable_mutex);
 
 	I("%s: BMA250 BOSCH driver probe successful", __func__);
@@ -3986,14 +4503,29 @@ err_create_g_sensor_device:
 	device_remove_file(bma250_powerkey_dev, &dev_attr_clear_powerkey_flag);
 err_create_bma250_device_file:
 	class_destroy(bma250_powerkey_class);
+<<<<<<< HEAD
 #endif
 err_create_class:
+=======
+#endif
+err_create_class:
+#ifdef CONFIG_SIG_MOTION
+	input_unregister_device(data->input_sig_motion);
+err_register_input_device_sig_motion:
+#endif
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 #ifdef CONFIG_CIR_ALWAYS_READY
 	input_unregister_device(data->input_cir);
 err_register_input_cir_device:
 #endif
 	input_unregister_device(data->input);
 err_register_input_device:
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_SIG_MOTION
+	input_free_device(dev_sig_motion);
+#endif
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 #ifdef CONFIG_CIR_ALWAYS_READY
 	input_free_device(dev_cir);
 #endif
@@ -4180,4 +4712,3 @@ MODULE_LICENSE("GPL");
 
 module_init(BMA250_init);
 module_exit(BMA250_exit);
-

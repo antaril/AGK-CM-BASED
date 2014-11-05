@@ -914,7 +914,11 @@ static void __init bus_init(const struct l2_level *l2_level)
 
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 
+<<<<<<< HEAD
 #define HFPLL_MIN_VDD		 800000
+=======
+#define HFPLL_MIN_VDD		 700000
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 #define HFPLL_MAX_VDD		1350000
 
 ssize_t acpuclk_get_vdd_levels_str(char *buf) {

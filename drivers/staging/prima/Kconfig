@@ -15,6 +15,7 @@ config PRIMA_WLAN_BTAMP
 	bool "Enable the Prima WLAN BT-AMP feature"
 	default n
 
+<<<<<<< HEAD
 config PRIMA_WLAN_LFR
 	bool "Enable the Prima WLAN Legacy Fast Roaming feature"
 	default n
@@ -35,4 +36,6 @@ config QCOM_TDLS
 	bool "Enable TDLS feature"
 	default y
 
+=======
+>>>>>>> 8f21ba79e30f047f727d3b9dd531267c1db2a838
 endif # PRIMA_WLAN
