@@ -167,13 +167,6 @@ retry:
 	schedule_work(&vib->work);
 }
 
-int vibrate(int time)
-{
-    pm8xxx_vib_enable(&vib_dev->timed_dev, time);
-    return 0;
-}
-
-
 static void pm8xxx_vib_update(struct work_struct *work)
 {
 	struct pm8xxx_vib *vib = container_of(work, struct pm8xxx_vib,
@@ -182,6 +175,11 @@ static void pm8xxx_vib_update(struct work_struct *work)
 	pm8xxx_vib_set(vib, vib->state);
 }
 
+int vibrate(int time)
+{
+    pm8xxx_vib_enable(&vib_dev->timed_dev, time);
+    return 0;
+}
 
 static int pm8xxx_vib_get_time(struct timed_output_dev *dev)
 {
